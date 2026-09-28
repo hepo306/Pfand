@@ -118,6 +118,8 @@ export default function ManageEvent() {
       return;
     }
     const known = tickets?.find((t) => t.account.attendee.equals(parsed.attendee));
+    // The same ticket lingering in front of the camera right after check-in: keep the green result.
+    if (known && isCheckedIn(known.account) && Date.now() / 1000 - known.account.checkedInAt.toNumber() < 60) return;
     if (known && isCheckedIn(known.account)) {
       const at = new Date(known.account.checkedInAt.toNumber() * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
       setScanResult({ ok: false, title: "Already checked in", body: `This guest came in at ${at} and was refunded then.`, at: Date.now() });

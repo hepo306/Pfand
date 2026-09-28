@@ -17,7 +17,7 @@ export function Scanner({ onResult, paused }: { onResult: (text: string) => void
       videoRef.current,
       (res) => {
         const now = Date.now();
-        if (res.data === lastRef.current.text && now - lastRef.current.at < 4000) return;
+        if (res.data === lastRef.current.text && now - lastRef.current.at < 10000) return;
         lastRef.current = { text: res.data, at: now };
         cbRef.current(res.data);
       },
