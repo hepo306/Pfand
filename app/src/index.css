@@ -1,0 +1,120 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/*
+  Shape rule: buttons and chips are full pills, cards are rounded-2xl (16px),
+  inputs are rounded-xl (12px). One accent (Pfand green) across the app.
+*/
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+}
+
+:root {
+  --bg: #f4f5f3;
+  --surface: #fdfdfc;
+  --surface-2: #eceeea;
+  --line: #dcdfd9;
+  --ink: #141816;
+  --ink-2: #4a524d;
+  --ink-3: #6b736e;
+  --accent: #0b7a55;
+  --accent-ink: #f6fbf8;
+  --accent-soft: #dcefe6;
+  --warn: #8a5a00;
+  --warn-soft: #f6ead0;
+  --danger: #b42318;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1110;
+    --surface: #161a18;
+    --surface-2: #1e2320;
+    --line: #2a302d;
+    --ink: #eef1ef;
+    --ink-2: #b3bbb6;
+    --ink-3: #8a938e;
+    --accent: #34c28e;
+    --accent-ink: #06140e;
+    --accent-soft: #143528;
+    --warn: #f0b445;
+    --warn-soft: #3a2c0f;
+    --danger: #ff7a6e;
+    color-scheme: dark;
+  }
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .rise-2 {
+    animation: rise 0.5s 0.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .pop {
+    animation: pop 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .shimmer {
+    background: linear-gradient(90deg, var(--surface-2) 0%, var(--line) 50%, var(--surface-2) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+}
+.shimmer {
+  background-color: var(--surface-2);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
