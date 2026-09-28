@@ -32,7 +32,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>Prototype on Solana devnet. Test money only.</p>
           <a
-            href="https://github.com/hepo306/pfand"
+            href="https://github.com/hepo306/Pfand"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 hover:text-ink"

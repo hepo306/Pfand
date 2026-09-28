@@ -40,7 +40,7 @@ function loadOrCreate(): Keypair {
  */
 export class DemoWalletAdapter extends BaseSignerWalletAdapter {
   name = DemoWalletName;
-  url = "https://github.com/hepo306/pfand";
+  url = "https://github.com/hepo306/Pfand";
   icon = ICON;
   readonly supportedTransactionVersions: ReadonlySet<TransactionVersion> = new Set(["legacy", 0]);
   private _keypair: Keypair | null = null;
