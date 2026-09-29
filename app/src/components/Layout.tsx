@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { GithubLogo } from "@phosphor-icons/react";
+import { FilePdf, GithubLogo } from "@phosphor-icons/react";
 import { WalletMenu } from "./WalletMenu";
 
 export function Logo() {
@@ -31,6 +31,10 @@ export function Layout({ children }: { children: ReactNode }) {
       <footer className="border-t border-line/70">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>Prototype on Solana devnet. Test money only.</p>
+          <div className="flex items-center gap-5">
+          <a href="./pitch.pdf" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 hover:text-ink">
+            <FilePdf size={16} /> Pitch deck
+          </a>
           <a
             href="https://github.com/hepo306/Pfand"
             target="_blank"
@@ -39,6 +43,7 @@ export function Layout({ children }: { children: ReactNode }) {
           >
             <GithubLogo size={16} /> Source on GitHub
           </a>
+          </div>
         </div>
       </footer>
     </div>

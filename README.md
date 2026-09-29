@@ -7,6 +7,7 @@ Guests lock a small stablecoin deposit (for example €5) when they sign up for 
 Germany already solved this problem for bottles. Pfand does the same for event seats.
 
 - **Live demo (devnet):** https://hepo306.github.io/Pfand/
+- **Pitch deck (PDF):** https://hepo306.github.io/Pfand/pitch.pdf
 - **Program (devnet):** [`FhmtxMbGXWjhgMVXdEEoreMsuexdRirXg76T9RXjMQeb`](https://explorer.solana.com/address/FhmtxMbGXWjhgMVXdEEoreMsuexdRirXg76T9RXjMQeb?cluster=devnet)
 
 ---
