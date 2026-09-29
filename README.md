@@ -8,6 +8,7 @@ Germany already solved this problem for bottles. Pfand does the same for event s
 
 - **Live demo (devnet):** https://hepo306.github.io/Pfand/
 - **Pitch deck (PDF):** https://hepo306.github.io/Pfand/pitch.pdf
+- **Walkthrough video (2 min):** https://hepo306.github.io/Pfand/demo.mp4
 - **Program (devnet):** [`FhmtxMbGXWjhgMVXdEEoreMsuexdRirXg76T9RXjMQeb`](https://explorer.solana.com/address/FhmtxMbGXWjhgMVXdEEoreMsuexdRirXg76T9RXjMQeb?cluster=devnet)
 
 ---
