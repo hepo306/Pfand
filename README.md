@@ -54,10 +54,11 @@ sequenceDiagram
 ```
 
 1. **Create an event.** The organizer sets the title, times, deposit, capacity, free-cancellation deadline and the beneficiary for no-show deposits. The program creates an event account and a token vault owned by it.
-2. **Register.** A guest signs one transaction. The deposit moves into the event vault and a ticket account records the registration. The app shows a QR ticket.
-3. **Cancel (optional).** Before the deadline, the guest can cancel and gets the full deposit back. The spot is freed.
-4. **Check in.** At the door the organizer scans the QR code with a phone. The program marks the ticket as attended and refunds the deposit in the same transaction.
-5. **Settle.** After the end time, the organizer settles. What is left in the vault goes to the beneficiary. The event is closed for good.
+2. **Share.** Right after creating the event, the organizer gets the sign-up link and a QR code to copy, download or print on a poster.
+3. **Register.** A guest enters name and email and signs one transaction. The deposit moves into the event vault and a ticket account records the registration. The app shows a personal QR ticket.
+4. **Cancel (optional).** Before the deadline, the guest can cancel and gets the full deposit back. The spot is freed.
+5. **Check in.** At the door the organizer scans the QR code with a phone and sees the guest's name. The program marks the ticket as attended and refunds the deposit in the same transaction.
+6. **Settle.** After the end time, the organizer settles. What is left in the vault goes to the beneficiary. The event is closed for good.
 
 ## Why Solana
 
@@ -80,7 +81,7 @@ sequenceDiagram
 | Instruction | Signer | What it does |
 | --- | --- | --- |
 | `create_event` | organizer | Creates the event account and its deposit vault |
-| `register` | guest | Locks the deposit, creates the guest's ticket |
+| `register` | guest | Locks the deposit, creates the guest's ticket with their encrypted contact details |
 | `cancel_registration` | guest | Before the deadline: refunds the deposit, closes the ticket, frees the spot |
 | `check_in` | organizer | Marks the ticket as attended and refunds the deposit |
 | `settle` | organizer | After the end time: sends unclaimed deposits to the beneficiary |
@@ -94,6 +95,10 @@ sequenceDiagram
 - Cancellation only works until the deadline the organizer set.
 - Settling is only possible after the end time, so late arrivals can still check in.
 - The beneficiary is fixed when the event is created and cannot be changed later.
+
+### Guest data stays private
+
+The chain is public, so names and emails are never stored in plain text. When the organizer creates an event, the app derives an encryption key pair from a signature of the organizer's wallet (Ed25519 signatures are deterministic, so the same wallet always gets the same key back) and stores only the public half in the event. Guests' browsers encrypt `{name, email}` to that key (X25519 + XSalsa20-Poly1305 via tweetnacl) before registering. Only the organizer's wallet can unlock the guest list, which can also be exported as CSV.
 
 These rules are covered by the tests in `programs/pfand/tests/test_pfand.rs`.
 
