@@ -23,6 +23,9 @@ pub struct Event {
     pub ends_at: i64,
     /// Wallet that receives no-show deposits (the club, or a charity).
     pub beneficiary: Pubkey,
+    /// X25519 public key guests encrypt their name and email to. Only the
+    /// organizer can derive the matching secret (from a wallet signature).
+    pub guest_key: [u8; 32],
     pub settled: bool,
     pub bump: u8,
 }
@@ -42,5 +45,8 @@ pub struct Ticket {
     pub status: TicketStatus,
     pub registered_at: i64,
     pub checked_in_at: i64,
+    /// Name and email, encrypted to `Event::guest_key`. Public chain, private content.
+    #[max_len(256)]
+    pub contact: Vec<u8>,
     pub bump: u8,
 }

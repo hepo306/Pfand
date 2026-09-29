@@ -118,23 +118,37 @@ export function parseTicketQr(text: string): { event: PublicKey; attendee: Publi
 
 // ---------- queries ----------
 
+// Account sizes of the current layout. Filtering by size skips accounts
+// created by earlier versions of the program on devnet.
+export const EVENT_SIZE = 258;
+export const TICKET_SIZE = 350;
+
 export async function fetchEvent(program: PfandProgram, event: PublicKey) {
-  return program.account.event.fetchNullable(event);
+  const info = await program.provider.connection.getAccountInfo(event, "confirmed");
+  if (!info || info.data.length !== EVENT_SIZE || !info.owner.equals(PROGRAM_ID)) return null;
+  return program.coder.accounts.decode("event", info.data) as EventAccount;
 }
 
 export async function fetchEventTickets(program: PfandProgram, event: PublicKey) {
-  return program.account.ticket.all([{ memcmp: { offset: 8, bytes: event.toBase58() } }]);
+  return program.account.ticket.all([
+    { dataSize: TICKET_SIZE },
+    { memcmp: { offset: 8, bytes: event.toBase58() } },
+  ]);
 }
 
 export async function fetchOrganizerEvents(program: PfandProgram, organizer: PublicKey) {
   const list = await program.account.event.all([
+    { dataSize: EVENT_SIZE },
     { memcmp: { offset: 8, bytes: organizer.toBase58() } },
   ]);
   return list.sort((a, b) => b.account.startsAt.toNumber() - a.account.startsAt.toNumber());
 }
 
 export async function fetchAttendeeTickets(program: PfandProgram, attendee: PublicKey) {
-  return program.account.ticket.all([{ memcmp: { offset: 40, bytes: attendee.toBase58() } }]);
+  return program.account.ticket.all([
+    { dataSize: TICKET_SIZE },
+    { memcmp: { offset: 40, bytes: attendee.toBase58() } },
+  ]);
 }
 
 export async function tokenBalance(connection: Connection, owner: PublicKey): Promise<number> {
@@ -160,8 +174,13 @@ export type CreateEventInput = {
 
 const secs = (d: Date) => new BN(Math.floor(d.getTime() / 1000));
 
-export async function createEvent(program: PfandProgram, organizer: PublicKey, input: CreateEventInput) {
-  const eventId = randomEventId();
+export async function createEvent(
+  program: PfandProgram,
+  organizer: PublicKey,
+  input: CreateEventInput,
+  eventId: BN,
+  guestKey: Uint8Array,
+) {
   const event = eventPda(organizer, eventId);
   const sig = await program.methods
     .createEvent({
@@ -173,6 +192,7 @@ export async function createEvent(program: PfandProgram, organizer: PublicKey, i
       startsAt: secs(input.startsAt),
       endsAt: secs(input.endsAt),
       beneficiary: input.beneficiary,
+      guestKey: Array.from(guestKey),
     })
     .accountsPartial({
       organizer,
@@ -187,9 +207,15 @@ export async function createEvent(program: PfandProgram, organizer: PublicKey, i
   return { sig, event };
 }
 
-export function register(program: PfandProgram, event: PublicKey, e: EventAccount, attendee: PublicKey) {
+export function register(
+  program: PfandProgram,
+  event: PublicKey,
+  e: EventAccount,
+  attendee: PublicKey,
+  contact: Uint8Array,
+) {
   return program.methods
-    .register()
+    .register(Buffer.from(contact))
     .accountsPartial({
       attendee,
       event,
@@ -277,6 +303,7 @@ const FRIENDLY: Record<string, string> = {
   WrongAttendee: "This ticket belongs to a different wallet.",
   InvalidSchedule: "Check the times: cancel deadline ≤ start < end, all in the future.",
   InvalidTitle: "Title must be 1 to 64 characters.",
+  InvalidContact: "Name and email are too long.",
 };
 
 export function friendlyError(err: unknown): string {

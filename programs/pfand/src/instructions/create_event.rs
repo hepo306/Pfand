@@ -16,6 +16,7 @@ pub struct CreateEventArgs {
     pub starts_at: i64,
     pub ends_at: i64,
     pub beneficiary: Pubkey,
+    pub guest_key: [u8; 32],
 }
 
 #[derive(Accounts)]
@@ -73,6 +74,7 @@ pub fn handle_create_event(ctx: Context<CreateEvent>, args: CreateEventArgs) -> 
     event.starts_at = args.starts_at;
     event.ends_at = args.ends_at;
     event.beneficiary = args.beneficiary;
+    event.guest_key = args.guest_key;
     event.settled = false;
     event.bump = ctx.bumps.event;
 

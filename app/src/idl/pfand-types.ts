@@ -684,7 +684,12 @@ export type Pfand = {
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "contact",
+          "type": "bytes"
+        }
+      ]
     },
     {
       "name": "settle",
@@ -1007,6 +1012,11 @@ export type Pfand = {
       "code": 6011,
       "name": "wrongAttendee",
       "msg": "Account does not match the ticket holder"
+    },
+    {
+      "code": 6012,
+      "name": "invalidContact",
+      "msg": "Contact details must be 1-256 bytes"
     }
   ],
   "types": [
@@ -1082,6 +1092,15 @@ export type Pfand = {
           {
             "name": "beneficiary",
             "type": "pubkey"
+          },
+          {
+            "name": "guestKey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
       }
@@ -1159,6 +1178,19 @@ export type Pfand = {
               "Wallet that receives no-show deposits (the club, or a charity)."
             ],
             "type": "pubkey"
+          },
+          {
+            "name": "guestKey",
+            "docs": [
+              "X25519 public key guests encrypt their name and email to. Only the",
+              "organizer can derive the matching secret (from a wallet signature)."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
             "name": "settled",
@@ -1270,6 +1302,13 @@ export type Pfand = {
           {
             "name": "checkedInAt",
             "type": "i64"
+          },
+          {
+            "name": "contact",
+            "docs": [
+              "Name and email, encrypted to `Event::guest_key`. Public chain, private content."
+            ],
+            "type": "bytes"
           },
           {
             "name": "bump",

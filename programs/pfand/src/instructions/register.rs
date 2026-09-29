@@ -42,8 +42,12 @@ pub struct Register<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle_register(ctx: Context<Register>) -> Result<()> {
+pub fn handle_register(ctx: Context<Register>, contact: Vec<u8>) -> Result<()> {
     let now = Clock::get()?.unix_timestamp;
+    require!(
+        !contact.is_empty() && contact.len() <= MAX_CONTACT_LEN,
+        PfandError::InvalidContact
+    );
     let event = &mut ctx.accounts.event;
     require!(!event.settled, PfandError::AlreadySettled);
     require!(now < event.starts_at, PfandError::RegistrationClosed);
@@ -72,6 +76,7 @@ pub fn handle_register(ctx: Context<Register>) -> Result<()> {
     ticket.status = TicketStatus::Registered;
     ticket.registered_at = now;
     ticket.checked_in_at = 0;
+    ticket.contact = contact;
     ticket.bump = ctx.bumps.ticket;
 
     emit!(Registered {

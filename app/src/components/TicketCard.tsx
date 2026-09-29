@@ -4,12 +4,14 @@ import { QrCode } from "./QrCode";
 /** The attendee's ticket: event name, time, deposit and the QR the door scans. */
 export function TicketCard({
   title,
+  holder,
   when,
   deposit,
   qrValue,
   footer,
 }: {
   title: string;
+  holder?: string;
   when: string;
   deposit: string;
   qrValue: string;
@@ -18,7 +20,7 @@ export function TicketCard({
   return (
     <div className="w-full max-w-[340px] overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_24px_60px_-28px_rgb(20_60_40/0.45)]">
       <div className="bg-accent px-5 pb-5 pt-4 text-accent-ink">
-        <p className="text-xs font-medium opacity-80">Ticket</p>
+        <p className="text-xs font-medium opacity-80">{holder ? `Ticket for ${holder}` : "Ticket"}</p>
         <p className="mt-1 text-lg font-semibold leading-snug tracking-tight">{title}</p>
         <p className="mt-0.5 text-sm opacity-85">{when}</p>
       </div>

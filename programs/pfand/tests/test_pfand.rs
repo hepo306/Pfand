@@ -121,6 +121,7 @@ fn create_event(env: &mut Env, organizer: &Keypair, beneficiary: Pubkey, capacit
                 starts_at: START,
                 ends_at: START + 7200,
                 beneficiary,
+                guest_key: [7u8; 32],
             },
         }
         .data(),
@@ -142,7 +143,7 @@ fn create_event(env: &mut Env, organizer: &Keypair, beneficiary: Pubkey, capacit
 fn register(env: &mut Env, event: Pubkey, attendee: &Keypair) -> Result<(), String> {
     let ix = Instruction::new_with_bytes(
         pfand::id(),
-        &pfand::instruction::Register {}.data(),
+        &pfand::instruction::Register { contact: vec![1u8; 200] }.data(),
         pfand::accounts::Register {
             attendee: attendee.pubkey(),
             event,
@@ -262,6 +263,7 @@ fn full_event_lifecycle() {
         assert_eq!(token_balance(&env.svm, &s.pubkey(), &env.mint), 20_000_000);
         let t = read_ticket(&env, event, &s.pubkey()).unwrap();
         assert_eq!(t.status, TicketStatus::CheckedIn);
+        assert_eq!(t.contact.len(), 200);
     }
 
     // Registration is closed once the event has started.
@@ -326,4 +328,12 @@ fn capacity_is_enforced_and_double_registration_fails() {
     assert!(register(&mut env, event, &a).is_err());
     let err = register(&mut env, event, &b).unwrap_err();
     assert!(err.contains("EventFull"), "{err}");
+}
+
+/// The web app filters accounts by these sizes (app/src/lib/pfand.ts).
+#[test]
+fn account_sizes_match_the_app() {
+    use anchor_lang::Space;
+    assert_eq!(8 + Event::INIT_SPACE, 258);
+    assert_eq!(8 + Ticket::INIT_SPACE, 350);
 }

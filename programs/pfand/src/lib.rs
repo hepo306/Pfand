@@ -24,8 +24,8 @@ pub mod pfand {
         instructions::create_event::handle_create_event(ctx, args)
     }
 
-    pub fn register(ctx: Context<Register>) -> Result<()> {
-        instructions::register::handle_register(ctx)
+    pub fn register(ctx: Context<Register>, contact: Vec<u8>) -> Result<()> {
+        instructions::register::handle_register(ctx, contact)
     }
 
     pub fn check_in(ctx: Context<CheckIn>) -> Result<()> {

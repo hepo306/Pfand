@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import type { PublicKey } from "@solana/web3.js";
 import { Link, useParams } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { CalendarBlank, CheckCircle, Clock, Coins, Drop, Gear, HandHeart, Users } from "@phosphor-icons/react";
-import { Button, Card, Chip, Notice, Skeleton } from "../components/ui";
+import { CalendarBlank, CheckCircle, Clock, Coins, Drop, Gear, HandHeart, LockSimple, Users } from "@phosphor-icons/react";
+import { Button, Card, Chip, Field, Notice, Skeleton, inputClass } from "../components/ui";
 import { TicketCard } from "../components/TicketCard";
 import { useAccount } from "../components/account";
 import { useToast } from "../components/toast";
@@ -25,6 +26,7 @@ import {
   type TicketAccount,
 } from "../lib/pfand";
 import { parseKey, relative, useEvent, useNow, usePoll } from "../lib/useEventData";
+import { contactFits, encryptContact, isEmail, recallMe, recallTicketName, rememberMe, type Contact } from "../lib/contact";
 
 export default function EventPage() {
   const { eventKey: raw } = useParams();
@@ -218,6 +220,7 @@ function ActionPanel({
       <div className="flex flex-col items-center gap-4 md:items-stretch">
         <TicketCard
           title={event.title}
+          holder={recallTicketName(key) ?? undefined}
           when={formatDate(event.startsAt)}
           deposit={formatEur(event.deposit)}
           qrValue={ticketQrPayload(key, publicKey)}
@@ -260,52 +263,105 @@ function ActionPanel({
     );
 
   const full = event.registered >= event.capacity;
-  const needsEur = eur !== null && eur < event.deposit.toNumber();
   const needsSol = sol !== null && sol < 0.004;
 
   return (
+    <RegisterForm
+      event={event}
+      eventKey={key}
+      full={full}
+      needsSol={needsSol}
+      busy={busy === "register"}
+      onSubmit={async (contact) => {
+        setBusy("register");
+        try {
+          // Devnet convenience: mint test euros automatically if the wallet has too few.
+          if (eur !== null && eur < event.deposit.toNumber()) await faucet(program, publicKey);
+          const sig = await register(program, key, event, publicKey, encryptContact(contact, Uint8Array.from(event.guestKey)));
+          rememberMe(contact, key);
+          toast.push({
+            kind: "success",
+            title: "You're registered",
+            body: `${formatEur(event.deposit)} is held until you check in.`,
+            sig,
+          });
+          onChange();
+          refresh();
+        } catch (e) {
+          toast.push({ kind: "error", title: "That didn't work", body: friendlyError(e) });
+        } finally {
+          setBusy(null);
+        }
+      }}
+    />
+  );
+}
+
+function RegisterForm({
+  event,
+  eventKey,
+  full,
+  needsSol,
+  busy,
+  onSubmit,
+}: {
+  event: EventAccount;
+  eventKey: PublicKey;
+  full: boolean;
+  needsSol: boolean;
+  busy: boolean;
+  onSubmit: (c: Contact) => void;
+}) {
+  const saved = useMemo(() => recallMe(), []);
+  const [name, setName] = useState(saved?.name ?? "");
+  const [email, setEmail] = useState(saved?.email ?? "");
+  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const errs: typeof errors = {};
+    if (name.trim().length < 2) errs.name = "Enter your name.";
+    if (!isEmail(email)) errs.email = "Enter a valid email address.";
+    if (!errs.name && !errs.email && !contactFits({ name, email })) errs.email = "Name and email are too long.";
+    setErrors(errs);
+    if (Object.keys(errs).length === 0) onSubmit({ name, email });
+  };
+
+  return (
     <Card className="p-6">
-      <p className="text-sm text-ink-3">Deposit</p>
-      <p className="tabular text-4xl font-semibold tracking-tight">{formatEur(event.deposit)}</p>
-      <p className="mt-2 text-sm leading-relaxed text-ink-2">
-        Locked when you register. Back to you at check-in, or if you cancel before the deadline.
+      <h2 className="text-xl font-semibold tracking-tight">Save your spot</h2>
+      <p className="mt-1 text-sm leading-relaxed text-ink-2">
+        A <span className="font-medium text-ink">{formatEur(event.deposit)}</span> deposit is locked when you register.
+        You get it back at check-in, or if you cancel in time.
       </p>
-
-      {needsSol && (
-        <div className="mt-5">
+      <form onSubmit={submit} noValidate className="mt-5 flex flex-col gap-4" aria-describedby={`privacy-${eventKey.toBase58()}`}>
+        <Field label="Name" error={errors.name}>
+          <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={60} />
+        </Field>
+        <Field label="Email" error={errors.email}>
+          <input
+            className={inputClass}
+            type="email"
+            inputMode="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            maxLength={100}
+          />
+        </Field>
+        <p id={`privacy-${eventKey.toBase58()}`} className="flex items-start gap-2 text-xs leading-relaxed text-ink-3">
+          <LockSimple size={14} className="mt-0.5 shrink-0" />
+          Encrypted before it's saved. Only the organizer can read your name and email.
+        </p>
+        {needsSol && (
           <Notice tone="warn" icon={<Drop size={18} />}>
-            You need a little test SOL for network fees. Open the wallet menu (top right) and choose "Get test SOL".
+            Your wallet needs a little test SOL for network fees. Open the wallet menu (top right) and choose "Get test SOL".
           </Notice>
-        </div>
-      )}
-
-      {needsEur ? (
-        <Button
-          className="mt-6 w-full"
-          size="lg"
-          variant="secondary"
-          disabled={needsSol}
-          loading={busy === "faucet"}
-          onClick={() => run("faucet", () => faucet(program, publicKey), { title: "€20.00 test euros added" })}
-        >
-          <Coins size={18} /> Get €20 test euros first
-        </Button>
-      ) : (
-        <Button
-          className="mt-6 w-full"
-          size="lg"
-          disabled={full || needsSol}
-          loading={busy === "register"}
-          onClick={() =>
-            run("register", () => register(program, key, event, publicKey), {
-              title: "You're registered",
-              body: `${formatEur(event.deposit)} is held until you check in.`,
-            })
-          }
-        >
+        )}
+        <Button type="submit" className="mt-1 w-full" size="lg" disabled={full || needsSol} loading={busy}>
           {full ? "Event is full" : `Register with ${formatEur(event.deposit)} deposit`}
         </Button>
-      )}
+      </form>
     </Card>
   );
 }

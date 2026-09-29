@@ -1,5 +1,5 @@
 import {
-  BaseSignerWalletAdapter,
+  BaseMessageSignerWalletAdapter,
   WalletNotConnectedError,
   WalletReadyState,
   isVersionedTransaction,
@@ -8,6 +8,7 @@ import {
 } from "@solana/wallet-adapter-base";
 import { Keypair, type TransactionVersion } from "@solana/web3.js";
 import bs58 from "bs58";
+import nacl from "tweetnacl";
 
 export const DemoWalletName = "Demo wallet" as WalletName<"Demo wallet">;
 const STORAGE_KEY = "pfand.demo-wallet.v1";
@@ -38,7 +39,7 @@ function loadOrCreate(): Keypair {
  * A throwaway devnet wallet that lives in this browser. Lets anyone try Pfand
  * on a phone without installing a wallet app. Never use it for real funds.
  */
-export class DemoWalletAdapter extends BaseSignerWalletAdapter {
+export class DemoWalletAdapter extends BaseMessageSignerWalletAdapter {
   name = DemoWalletName;
   url = "https://github.com/hepo306/Pfand";
   icon = ICON;
@@ -75,5 +76,11 @@ export class DemoWalletAdapter extends BaseSignerWalletAdapter {
     if (isVersionedTransaction(tx)) tx.sign([kp]);
     else tx.partialSign(kp);
     return tx;
+  }
+
+  async signMessage(message: Uint8Array): Promise<Uint8Array> {
+    const kp = this._keypair;
+    if (!kp) throw new WalletNotConnectedError();
+    return nacl.sign.detached(message, kp.secretKey);
   }
 }

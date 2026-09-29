@@ -22,7 +22,7 @@ const steps = [
   {
     icon: <HandCoins size={22} />,
     title: "Sign up with a €5 deposit",
-    body: "Guests lock a small stablecoin deposit in the event's vault. Can't make it? Cancel before the deadline and it comes straight back.",
+    body: "Guests enter name and email and lock a small stablecoin deposit in the event's vault. Can't make it? Cancel before the deadline and it comes straight back.",
   },
   {
     icon: <QrIcon size={22} />,
@@ -65,6 +65,7 @@ export default function Home() {
           <div className="rotate-[2deg]">
             <TicketCard
               title="Goethe AI Talk: Agents in Practice"
+              holder="Lena Hoffmann"
               when="Sample ticket · 18:30 · Campus Westend"
               deposit="€5.00"
               qrValue="pfand1:preview"

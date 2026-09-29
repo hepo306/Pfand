@@ -678,7 +678,12 @@
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "contact",
+          "type": "bytes"
+        }
+      ]
     },
     {
       "name": "settle",
@@ -1001,6 +1006,11 @@
       "code": 6011,
       "name": "WrongAttendee",
       "msg": "Account does not match the ticket holder"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidContact",
+      "msg": "Contact details must be 1-256 bytes"
     }
   ],
   "types": [
@@ -1076,6 +1086,15 @@
           {
             "name": "beneficiary",
             "type": "pubkey"
+          },
+          {
+            "name": "guest_key",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
       }
@@ -1153,6 +1172,19 @@
               "Wallet that receives no-show deposits (the club, or a charity)."
             ],
             "type": "pubkey"
+          },
+          {
+            "name": "guest_key",
+            "docs": [
+              "X25519 public key guests encrypt their name and email to. Only the",
+              "organizer can derive the matching secret (from a wallet signature)."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
             "name": "settled",
@@ -1264,6 +1296,13 @@
           {
             "name": "checked_in_at",
             "type": "i64"
+          },
+          {
+            "name": "contact",
+            "docs": [
+              "Name and email, encrypted to `Event::guest_key`. Public chain, private content."
+            ],
+            "type": "bytes"
           },
           {
             "name": "bump",

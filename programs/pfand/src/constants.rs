@@ -14,3 +14,6 @@ pub const MAX_TITLE_LEN: usize = 64;
 
 /// Amount the devnet faucet hands out per call: 20.00 pEUR (6 decimals).
 pub const FAUCET_AMOUNT: u64 = 20_000_000;
+
+/// Max size of a guest's encrypted contact details (name + email).
+pub const MAX_CONTACT_LEN: usize = 256;

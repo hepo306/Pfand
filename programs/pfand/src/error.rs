@@ -26,4 +26,6 @@ pub enum PfandError {
     Unauthorized,
     #[msg("Account does not match the ticket holder")]
     WrongAttendee,
+    #[msg("Contact details must be 1-256 bytes")]
+    InvalidContact,
 }

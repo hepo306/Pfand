@@ -7,7 +7,8 @@ import { Button, Card, Field, Notice, inputClass } from "../components/ui";
 import { useAccount } from "../components/account";
 import { useToast } from "../components/toast";
 import { openConnectModal } from "../components/WalletMenu";
-import { createEvent, friendlyError } from "../lib/pfand";
+import { createEvent, eventPda, friendlyError, randomEventId } from "../lib/pfand";
+import { deriveGuestKeypair, guestKeyMessage, rememberGuestSecret } from "../lib/contact";
 
 // datetime-local wants "YYYY-MM-DDTHH:mm" in local time
 const toLocalInput = (d: Date) => {
@@ -23,7 +24,7 @@ const CANCEL_OPTIONS = [
 ];
 
 export default function CreateEvent() {
-  const { publicKey } = useWallet();
+  const { publicKey, signMessage } = useWallet();
   const { program, sol } = useAccount();
   const toast = useToast();
   const navigate = useNavigate();
@@ -81,19 +82,35 @@ export default function CreateEvent() {
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
+    if (!signMessage) {
+      toast.push({ kind: "error", title: "This wallet can't sign messages", body: "Use Phantom, Solflare or the demo wallet." });
+      return;
+    }
     setBusy(true);
     try {
-      const { sig, event } = await createEvent(program, publicKey, {
-        title: title.trim(),
-        depositEur: dep,
-        capacity: cap,
-        startsAt,
-        endsAt,
-        cancelUntil,
-        beneficiary: benef,
-      });
-      toast.push({ kind: "success", title: "Event created", body: "Share the link so people can sign up.", sig });
-      navigate(`/e/${event.toBase58()}/manage`);
+      // 1. Derive the key guests encrypt their name and email to.
+      const eventId = randomEventId();
+      const eventKey = eventPda(publicKey, eventId);
+      const guestKeys = deriveGuestKeypair(await signMessage(guestKeyMessage(eventKey)));
+      rememberGuestSecret(eventKey, guestKeys.secretKey);
+      // 2. Create the event on-chain.
+      const { sig, event } = await createEvent(
+        program,
+        publicKey,
+        {
+          title: title.trim(),
+          depositEur: dep,
+          capacity: cap,
+          startsAt,
+          endsAt,
+          cancelUntil,
+          beneficiary: benef,
+        },
+        eventId,
+        guestKeys.publicKey,
+      );
+      toast.push({ kind: "success", title: "Event created", body: "Now share the sign-up link.", sig });
+      navigate(`/e/${event.toBase58()}/manage?created=1`);
     } catch (err) {
       toast.push({ kind: "error", title: "Could not create the event", body: friendlyError(err) });
     } finally {
@@ -214,6 +231,7 @@ export default function CreateEvent() {
             </li>
             <li>
               <span className="font-medium text-ink">You share the link</span>, or print its QR code on the poster.
+              Guests sign up with name and email, encrypted so only you can read them.
             </li>
             <li>
               <span className="font-medium text-ink">At the door</span> you scan tickets on your phone. Each scan refunds
