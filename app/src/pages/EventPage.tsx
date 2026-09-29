@@ -239,7 +239,7 @@ function ActionPanel({
               })
             }
           >
-            Can't make it? Cancel ({relative(event.cancelUntil.toNumber(), now)} left)
+            Can't make it? Cancel ({relative(event.cancelUntil.toNumber(), now).replace(/^in /, "")} left)
           </Button>
         ) : (
           <p className="max-w-[340px] text-center text-xs text-ink-3">
