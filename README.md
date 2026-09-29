@@ -102,13 +102,13 @@ These rules are covered by the tests in `programs/pfand/tests/test_pfand.rs`.
 The app runs on Solana **devnet**. Nothing costs real money.
 
 1. Open the live demo and click **Connect**. On a phone, pick **Demo wallet** (it lives in your browser). On a laptop you can also use Phantom, Solflare or Backpack switched to devnet.
-2. In the wallet menu, choose **Get 1 test SOL** (network fees) and **Get €20 test euros**.
+2. New wallets get a little devnet SOL for network fees automatically. In the wallet menu, choose **Get €20 test euros**.
 3. As organizer: **Create an event**. The "Fill a 15-minute demo" button sets times that let you run the whole cycle in 15 minutes.
 4. Open the event link on a second device, connect a different wallet and register. Your ticket QR appears.
 5. On the organizer's device open **Scan**, point the camera at the ticket, and watch the guest's balance go back up.
 6. After the end time, click **Settle** to send the no-show deposits to the beneficiary.
 
-If the public devnet faucet is busy, paste your address on https://faucet.solana.com.
+The automatic top-up comes from a small demo sponsor wallet holding devnet SOL (no real value), because the public devnet faucet is often rate-limited. If it ever runs dry, paste your address on https://faucet.solana.com.
 
 ## Run it locally
 
