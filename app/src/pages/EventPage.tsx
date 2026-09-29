@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { CalendarBlank, CheckCircle, Clock, Coins, Drop, Gear, HandHeart, Users } from "@phosphor-icons/react";
@@ -24,12 +24,12 @@ import {
   type EventAccount,
   type TicketAccount,
 } from "../lib/pfand";
-import { parseKey, relative, useEvent, useNow } from "../lib/useEventData";
+import { parseKey, relative, useEvent, useNow, usePoll } from "../lib/useEventData";
 
 export default function EventPage() {
   const { eventKey: raw } = useParams();
-  const eventKey = parseKey(raw);
-  const { event, reload } = useEvent(eventKey, 4000);
+  const eventKey = useMemo(() => parseKey(raw), [raw]);
+  const { event, reload } = useEvent(eventKey, 6000);
   const { publicKey } = useWallet();
   const { program, refresh } = useAccount();
   const [ticket, setTicket] = useState<TicketAccount | null | undefined>(undefined);
@@ -41,11 +41,7 @@ export default function EventPage() {
     setTicket(t);
   }, [program, eventKey, publicKey]);
 
-  useEffect(() => {
-    loadTicket();
-    const id = setInterval(loadTicket, 4000);
-    return () => clearInterval(id);
-  }, [loadTicket]);
+  usePoll(loadTicket, 6000);
 
   // When the door scans us, update the balance pill right away.
   const checkedIn = !!ticket && isCheckedIn(ticket);
@@ -265,7 +261,7 @@ function ActionPanel({
 
   const full = event.registered >= event.capacity;
   const needsEur = eur !== null && eur < event.deposit.toNumber();
-  const needsSol = sol !== null && sol < 0.005;
+  const needsSol = sol !== null && sol < 0.004;
 
   return (
     <Card className="p-6">
@@ -278,7 +274,7 @@ function ActionPanel({
       {needsSol && (
         <div className="mt-5">
           <Notice tone="warn" icon={<Drop size={18} />}>
-            You need a little test SOL for network fees. Open the wallet menu (top right) and choose "Get 1 test SOL".
+            You need a little test SOL for network fees. Open the wallet menu (top right) and choose "Get test SOL".
           </Notice>
         </div>
       )}

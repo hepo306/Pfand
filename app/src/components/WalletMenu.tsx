@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletReadyState, type WalletName } from "@solana/wallet-adapter-base";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Coins, Copy, Drop, SignOut, Wallet, X } from "@phosphor-icons/react";
 import { Button } from "./ui";
 import { useAccount } from "./account";
 import { useToast } from "./toast";
 import { faucet, formatEur, friendlyError, shortKey } from "../lib/pfand";
 import { DemoWalletName } from "../lib/demoWallet";
+import { getTestSol } from "../lib/sponsor";
 
 // Lets any page open the wallet picker ("Connect to register").
 const openListeners = new Set<() => void>();
@@ -16,8 +16,7 @@ export const openConnectModal = () => openListeners.forEach((l) => l());
 
 export function WalletMenu() {
   const { wallets, select, publicKey, disconnect, wallet, connecting } = useWallet();
-  const { connection } = useConnection();
-  const { program, sol, eur, refresh } = useAccount();
+  const { connection, program, sol, eur, refresh } = useAccount();
   const toast = useToast();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -51,17 +50,15 @@ export function WalletMenu() {
     if (!publicKey) return;
     setBusy("sol");
     try {
-      const sig = await connection.requestAirdrop(publicKey, 1 * LAMPORTS_PER_SOL);
-      await connection.confirmTransaction(sig, "confirmed");
-      toast.push({ kind: "success", title: "1 test SOL added", body: "Enough for hundreds of transactions.", sig });
+      const sig = await getTestSol(connection, publicKey, { force: true });
+      toast.push({ kind: "success", title: "Test SOL added", body: "Enough for dozens of transactions.", sig });
       refresh();
     } catch {
       toast.push({
         kind: "error",
-        title: "The public faucet is busy",
-        body: "Copy your address and paste it on faucet.solana.com (devnet). It takes a few seconds.",
+        title: "The test faucet is busy",
+        body: "Copy your address and paste it on faucet.solana.com (devnet), or try again in a minute.",
       });
-      window.open("https://faucet.solana.com", "_blank", "noopener");
     } finally {
       setBusy(null);
     }
@@ -115,7 +112,7 @@ export function WalletMenu() {
                 </div>
               </div>
               <MenuItem icon={<Drop size={18} />} onClick={getSol} busy={busy === "sol"}>
-                Get 1 test SOL
+                Get test SOL
               </MenuItem>
               <MenuItem icon={<Coins size={18} />} onClick={getEur} busy={busy === "eur"}>
                 Get €20 test euros

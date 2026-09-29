@@ -187,9 +187,9 @@ export default function CreateEvent() {
             />
           </Field>
 
-          {publicKey && sol !== null && sol < 0.01 && (
+          {publicKey && sol !== null && sol < 0.006 && (
             <Notice tone="warn">
-              Your wallet needs a little test SOL to pay the network fee. Open the wallet menu and choose "Get 1 test SOL".
+              Your wallet needs a little test SOL to pay the network fee. Open the wallet menu and choose "Get test SOL".
             </Notice>
           )}
 

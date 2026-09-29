@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -35,15 +35,15 @@ import {
   type EventAccount,
   type TicketWithKey,
 } from "../lib/pfand";
-import { parseKey, relative, useEvent, useNow } from "../lib/useEventData";
+import { parseKey, relative, useEvent, useNow, usePoll } from "../lib/useEventData";
 
 type Tab = "scan" | "guests" | "share";
 type ScanResult = { ok: boolean; title: string; body: string; at: number };
 
 export default function ManageEvent() {
   const { eventKey: raw } = useParams();
-  const eventKey = parseKey(raw);
-  const { event, reload } = useEvent(eventKey, 5000);
+  const eventKey = useMemo(() => parseKey(raw), [raw]);
+  const { event, reload } = useEvent(eventKey, 8000);
   const { publicKey } = useWallet();
   const { program, refresh } = useAccount();
   const toast = useToast();
@@ -61,11 +61,7 @@ export default function ManageEvent() {
     if (t) setTickets(t.sort((a, b) => a.account.registeredAt.toNumber() - b.account.registeredAt.toNumber()));
   }, [program, eventKey]);
 
-  useEffect(() => {
-    loadTickets();
-    const id = setInterval(loadTickets, 5000);
-    return () => clearInterval(id);
-  }, [loadTickets]);
+  usePoll(loadTickets, 10000);
 
   const eventUrl = useMemo(
     () => `${window.location.origin}${window.location.pathname}#/e/${raw}`,

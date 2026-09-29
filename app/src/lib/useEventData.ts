@@ -31,11 +31,7 @@ export function useEvent(eventKey: PublicKey | null, pollMs = 5000) {
     }
   }, [program, eventKey]);
 
-  useEffect(() => {
-    reload();
-    const id = setInterval(reload, pollMs);
-    return () => clearInterval(id);
-  }, [reload, pollMs]);
+  usePoll(reload, pollMs);
 
   return { event, error, reload };
 }
@@ -56,4 +52,28 @@ export function relative(targetSecs: number, now: number): string {
   const fmt =
     abs < 60 ? `${abs}s` : abs < 3600 ? `${Math.round(abs / 60)} min` : abs < 86400 ? `${Math.round(abs / 3600)} h` : `${Math.round(abs / 86400)} days`;
   return d >= 0 ? `in ${fmt}` : `${fmt} ago`;
+}
+
+/**
+ * Calls `fn` now and then again `ms` after each run finishes. Never overlaps
+ * runs, so a slow or rate-limited RPC can't pile up requests.
+ */
+export function usePoll(fn: () => Promise<unknown>, ms: number) {
+  useEffect(() => {
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = async () => {
+      try {
+        await fn();
+      } catch {
+        /* keep polling */
+      }
+      if (alive) timer = setTimeout(tick, document.hidden ? ms * 3 : ms);
+    };
+    tick();
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [fn, ms]);
 }
